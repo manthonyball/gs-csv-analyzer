@@ -1,42 +1,76 @@
- //best is to use API to get merchant type, but, they are paid , so, bad plan, use config values 
- //20240127 - removed cashback handling
+/**
+ * Verdict : 
+ * best is to use API to get merchant type, but, they are paid 
+ *   so, bad plan, use config values in the Spreadsheet tab "Constants"
+ * 
+ * modifications :
+ * 20240127 - removed cashback handling
+ * 20240319 - ENH on spread-handling 
+ * 20240424 - code sanitary on const/let 
+*/
+
+var currentSheet = SpreadsheetApp.getActiveSheet(); 
 function getSheet() {
-  var merchantMap = getMerchantMap();
-  var sheet = SpreadsheetApp.getActiveSheet();
-  let startRow = 1;
-  var lastRow = sheet.getLastRow();
-  var range = sheet.getRange("A" + startRow + ":" + "C" + lastRow);
-  var txnList = range.getValues();
+  const merchantMap = getMerchantMap();
+  const startRow = 1;
+  const lastRow = currentSheet.getLastRow();
+  const range = currentSheet.getRange("A" + startRow + ":" + "C" + lastRow);
+  const txnList = range.getValues();
    
-  var idxGro = filterData(merchantMap,txnList,'GRO'); 
+  const idxGro = filterData(merchantMap,txnList,'GRO'); 
   if (idxGro.length !== 0) fillFormula(idxGro,"B","F3");  
  
-  var idxEnr = filterData(merchantMap,txnList,'ENR'); 
+  const idxEnr = filterData(merchantMap,txnList,'ENR'); 
   if (idxEnr.length !== 0) fillFormula(idxEnr,"B","F4");  
  
-  var idxIns = filterData(merchantMap,txnList,'INS'); 
+  const idxIns = filterData(merchantMap,txnList,'INS'); 
   if (idxIns.length !== 0)  fillFormula(idxIns,"B","F5"); 
   
   //var idxCab = filterData(merchantMap,txnList,'CAB');
   //if (idxCab.length !== 0) fillFormula(idxCab,"B","F7"); 
 
   //agg. remaining into others
-  const emptyNumber = [...Array(lastRow-1).keys()]
+  let emptyNumber = [...Array(lastRow-1).keys()]
   emptyNumber.shift();
   emptyNumber.shift();
-  let calculatedArray = [...idxGro, ...idxEnr, ...idxIns, ...idxCab];
+ 
+  const calculatedArray = mergeArray(
+      typeof (idxCab) === "undefined" ? null: idxCab, 
+      typeof (idxGro) === "undefined" ? null: idxGro, 
+      typeof (idxEnr) === "undefined" ? null: idxEnr, 
+      typeof (idxIns) === "undefined" ? null: idxIns
+    ) ; 
+
+  // let calculatedArray = [...idxGro, ...idxEnr, ...idxIns, ...idxCab];
   const idxNotProcessedValue = emptyNumber.filter(function (x) { 
       return calculatedArray.indexOf(x) < 0
   });
-  if (idxNotProcessedValue.length !== 0) fillFormula(idxNotProcessedValue,"B","F6"); 
+
+  if (idxNotProcessedValue.length !== 0) 
+    fillFormula(idxNotProcessedValue,"B","F6"); 
   
 }
+
+//this function works on undefined parameter list && 
+//   it returns a combined array ignoring non-array element(s)  
+function mergeArray(){
+  let returnArray=[];
+    if(arguments.length > 0) {
+          for(var i = 0; i < arguments.length ; i++){ 
+            if(arguments[i] != null && Array.isArray(arguments[i])){ 
+              returnArray.push(...Object.values(arguments[i]));
+            }
+          }
+    }
+  return returnArray;
+}
+
 function filterData(merchantMap,data,merchantType){
-  let queryableData = JSON.parse(merchantMap);
-  let shopNameListSDx = data.map(getMassagedShopListInSoundex);
-  let refListSDx = queryableData[merchantType].map(s=> soundex(s)); 
-  let idx = shopNameListSDx.reduce(reduceToIdx(refListSDx),[]);
-  let idxFinalized = idx.map(x=> x+1);
+  const queryableData = JSON.parse(merchantMap);
+  const shopNameListSDx = data.map(getMassagedShopListInSoundex);
+  const refListSDx = queryableData[merchantType].map(s=> soundex(s)); 
+  const idx = shopNameListSDx.reduce(reduceToIdx(refListSDx),[]);
+  const idxFinalized = idx.map(x=> x+1); // uses the GS row number as index and offfset 
   return idxFinalized;
 }
 
@@ -53,7 +87,7 @@ function getMassagedShopListInSoundex(id, idx, arr){
     let shopWLocation = arr[idx][2].split(' ') 
     shopWLocation.pop(); // to remove province 
     shopWLocation.pop(); // to remove area 
-    let shopWOlocation = shopWLocation.join(' ');
+    const shopWOlocation = shopWLocation.join(' ');
     let finalShop = "";
     // to special handle LOBLAW's family
     if (shopWOlocation.includes("FRILLS") || shopWOlocation.includes("RCSS")) 
@@ -63,19 +97,17 @@ function getMassagedShopListInSoundex(id, idx, arr){
     return soundex(finalShop); 
 }
 
-function fillFormula(idxList,refCellIdentifier,destinationCell){
-  let ss = SpreadsheetApp.getActiveSpreadsheet();  
-  let cell = ss.getRange(destinationCell);
-  let joinedList = idxList.map(s=>refCellIdentifier+s).join('+');
+function fillFormula(idxList,refCellIdentifier,destinationCell){ 
+  const joinedList = idxList.map(s=>refCellIdentifier+s).join('+');
+  let cell = currentSheet.getRange(destinationCell);
   cell.setFormula("=SUM("+joinedList+")");
 }
 
 function getMerchantMap() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var viewSheet = ss.getSheetByName('Constants');
-  let lastRowParam = viewSheet.getLastRow();
-  let r = viewSheet.getRange("A2:B" + lastRowParam); 
-  var result = r.getValues(); 
+  const constantSheet = SpreadsheetApp.getActive().getSheetByName('Constants');
+  const lastRowParam = constantSheet.getLastRow();
+  const r = constantSheet.getRange("A2:B" + lastRowParam); 
+  const result = r.getValues(); 
   let hashmap = new Map()
   for (let i = 0; i < lastRowParam-1; i++) {
     hashmap[result[i][1]] = hashmap[result[i][1]] || []
