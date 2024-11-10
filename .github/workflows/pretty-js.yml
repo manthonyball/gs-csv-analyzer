@@ -1,7 +1,7 @@
 # https://www.linkedin.com/pulse/automating-code-formatting-prettier-using-github-actions-kothari-00ojf/
 name: Prettier Check
 
-on: [pull_request]
+on: [pull_request,push]
 
 jobs:
   prettier:
