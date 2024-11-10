@@ -1,25 +1,35 @@
-# credit : https://blog.pradumnasaraf.dev/code-formatting-github-actions
-name: Format the code
+# https://www.linkedin.com/pulse/automating-code-formatting-prettier-using-github-actions-kothari-00ojf/
+name: Prettier Check
 
-on:
-  push:
-  pull_request:
+on: [pull_request]
 
 jobs:
-  format:
+  prettier:
     runs-on: ubuntu-latest
-    name: Format Files
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-      - name: Prettier
-        run: npx prettier --write **/*.gs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          commit_message: "style: format files"
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Prettier check
+        run: npm run check-format
+
+      - name: Annotate Pull Request with Results
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ Prettier found formatting issues. Please run `npm run format` to fix them.'
+            })
