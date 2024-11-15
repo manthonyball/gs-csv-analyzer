@@ -4,38 +4,13 @@ function stripHoSpending() {
     var lastRow = getLastNonEmptyRow("K");
     var range = sheet.getRange("K" + startRow + ":" + "N" + lastRow);
     var txnList = range.getValues();
-     
-//  ////Logger.log(Date.now())
-   var idxFoodBeverage = filterData( txnList, 'F&B',"fuzzy");
-   if (idxFoodBeverage.length !== 0)
-       fillFormula(idxFoodBeverage, "L", "R5");
+    var fillData = [];
 
-  // Logger.log("++++++++++++")
-  // Logger.log(Date.now())  
-     var idxCellPhonePlan = filterData( txnList, 'TEL');  
-     if (idxCellPhonePlan.length !== 0)      
-       fillFormula(idxCellPhonePlan, "L", "R3");
-  
-  // Logger.log("++++++++++++")
-  // Logger.log(Date.now())
-     var idxTransit = filterData(txnList, 'TRANSIT',"fuzzy");
-     if (idxTransit.length !== 0)
-         fillFormula(idxTransit, "L", "R4");
-  
-  // Logger.log("++++++++++++")
-  // Logger.log(Date.now())
-     var idxHealth = filterData(txnList,'HEL',"fuzzy");
-     if (idxHealth.length !== 0)
-         fillFormula(idxHealth, "L", "R7");
-  
-  // Logger.log("++++++++++++")
-  // Logger.log(Date.now())
-     var idxPayment = filterData(txnList,'PAY');
-     if (idxPayment.length !== 0)
-         fillFormula(idxPayment, "L", "R9");
-  
-  // Logger.log("++++++++++++")
-  // Logger.log(Date.now())
+    var idxFoodBeverage = filterData(txnList, 'F&B', "fuzzy");
+    var idxCellPhonePlan = filterData(txnList, 'TEL');
+    var idxTransit = filterData(txnList, 'TRANSIT', "fuzzy");
+    var idxHealth = filterData(txnList, 'HEL', "fuzzy");
+    var idxPayment = filterData(txnList, 'PAY');
 
     // create an empty array for matching
     const emptyNumber = [...Array(lastRow + 1).keys()]
@@ -43,12 +18,43 @@ function stripHoSpending() {
     emptyNumber.shift();
 
     let calculatedArray = [
-      ...idxCellPhonePlan, ...idxTransit, ...idxPayment, ...idxFoodBeverage, ...idxHealth
+        ...idxCellPhonePlan, ...idxTransit, ...idxPayment, ...idxFoodBeverage, ...idxHealth
     ];
+
     // if present in calculatedArray, exlcude in others
     const idxNotProcessedValue = emptyNumber.filter(
             x => calculatedArray.indexOf(x) < 0);
 
-    if (idxNotProcessedValue.length !== 0)
-        fillFormula(idxNotProcessedValue, "L", "R6");
+    // the logic needs to recognize below
+    // vi's no frill
+    // LCBO/RAO
+    // RCSS Scarborugh
+
+    const reprocessedItems = [];
+    const reprocessResult = tryReprocess(idxNotProcessedValue, "c");
+    for (const[key, value]of Object.entries(reprocessResult)) {
+        switch (value) {
+        case 'F&B':
+            idxFoodBeverage.push(key);
+            reprocessedItems.push(Number.parseInt(key));
+            break;
+        }
+    }
+    // if got set operation, should by more efficient ; O(mn)
+    let afterReprocessed = idxNotProcessedValue.filter(ele => !(reprocessedItems.includes(ele)))
+
+        if (idxFoodBeverage.length !== 0)
+            fillData.push(new FillTheFormDto('F&B', idxFoodBeverage, "L", "R5"));
+        if (idxCellPhonePlan.length !== 0)
+            fillData.push(new FillTheFormDto('TEL', idxCellPhonePlan, "L", "R3"));
+        if (idxTransit.length !== 0)
+            fillData.push(new FillTheFormDto('TRANSIT', idxTransit, "L", "R4"));
+        if (idxHealth.length !== 0)
+            fillData.push(new FillTheFormDto('HEL', idxHealth, "L", "R7"));
+        if (idxPayment.length !== 0)
+            fillData.push(new FillTheFormDto('PAY', idxPayment, "L", "R9"));
+        if (afterReprocessed.length !== 0)
+            fillData.push(new FillTheFormDto('OTH', afterReprocessed, "L", "R6"));
+
+        fillDataFromObject(fillData);
 }
