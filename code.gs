@@ -7,6 +7,7 @@ function getSheet() {
     var sheet = SpreadsheetApp.getActiveSheet();
     let startRow = 1;
     var lastRow = getLastNonEmptyRow("A");
+
     var range = sheet.getRange("A" + startRow + ":" + "C" + lastRow);
     var txnList = range.getValues();
     var fillData = [];
@@ -37,7 +38,7 @@ function getSheet() {
             x => calculatedArray.indexOf(x) < 0);
 
     const reprocessedItems = [];
-    const reprocessResult = tryReprocess(idxNotProcessedValue, "c");
+    const reprocessResult = tryReprocess(idxNotProcessedValue, "C");
     for (const[key, value]of Object.entries(reprocessResult)) {
         switch (value) {
         case 'GRO':
@@ -51,14 +52,15 @@ function getSheet() {
     let afterReprocessed = idxNotProcessedValue.filter(
             ele => !(reprocessedItems.includes(ele)));
 
+    if (afterReprocessed.length !== 0)
+        fillData.push(new FillTheFormDto('OTH', afterReprocessed, "B", "F6"));
+
     if (idxGro.length !== 0)
         fillData.push(new FillTheFormDto('Gro', idxGro, "B", "F3"));
     if (idxEnr.length !== 0)
         fillData.push(new FillTheFormDto('Enr', idxEnr, "B", "F4"));
     if (idxIns.length !== 0)
         fillData.push(new FillTheFormDto('Ins', idxIns, "B", "F5"));
-    if (afterReprocessed.length !== 0)
-        fillData.push(new FillTheFormDto('OTH', afterReprocessed, "B", "F6"));
 
     fillDataFromObject(fillData);
 }

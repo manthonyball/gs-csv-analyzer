@@ -15,7 +15,7 @@ function fuzzyMatchFilter(data, merchantType) {
 
     let refListSDx = getMerchantCache(merchantType).map(s => soundex(s));
 
-    // TODO: need to implement an anti-soundux alg'm handling the case of A&W & A&A precisely {n}000
+    // Aware of a case of A&W & A&A precisely {n}000; handled by reprocess logic
 
     let idx = shopNameListSDx.reduce(reduceToIdx(refListSDx), []);
     let idxFinalized = idx.map(x => x + 1);
@@ -32,18 +32,20 @@ function reduceToIdx(refListSDx) {
 
 /**********************************************************
  * soundex is nice; but cannot find short-form by the alg'm
- * popy -> limitation to remove geographical data [OK]Scarborough [X]North York
- * [TODO] if move to other place, control the default of popy
  **********************************************************/
 function getMassagedShopListInSoundex(id, idx, arr) {
     return getShopNameInSoundex(arr[idx][2]);
 }
 
+/**********************************************************
+ * popy -> limitation to remove geographical data [OK]Scarborough [X]North York
+ * [TODO] if move to other place, control the default of popy
+ **********************************************************/
 function popy(shopPreprocess) {
-    let popy = 2;
+    let popyTimes = 2;
     // normally, the right side is province/area, no need to analyze for my needs
-    while (popy >= 1) {
-        popy--;
+    while (popyTimes >= 1) {
+        popyTimes--;
         shopPreprocess.pop();
     }
     return shopPreprocess;

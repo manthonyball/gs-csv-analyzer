@@ -8,25 +8,32 @@ function fillDataFromObject(fillData) {
             element.destinationCell));
 }
 
-//O(mn)
+//todo : O(mn)
+/****
+ * the logic needs to recognize below
+ *  vi's no frill
+ *  LCBO/RAO
+ *  RCSS Scarborugh
+ */
 function tryReprocess(idxNotProcessedValue, col) {
-    var returnProcessResult = {};
+    const returnProcessResult = {};
+    const specialMap = getSheetDataInHashMap('E', '2', 'F', 'Constants');
+    const sheet = SpreadsheetApp.getActiveSpreadsheet();
     idxNotProcessedValue.forEach((r) => {
-        let sheet = SpreadsheetApp.getActiveSpreadsheet();
-        let tt = sheet.getRange(col + r);
-        let shopPreprocess = tt.getValue().split(' ');
+        let txnDespRange = sheet.getRange(col + r);
+        let shopPreprocess = txnDespRange.getValue().split(' ');
 
         popy(shopPreprocess);
-
-        let specialMap = getSheetDataInHashMap('E', '2', 'F', 'Constants');
+        // special handle col
         let shopWOlocation = shopPreprocess.join('');
 
         if (r != '') {
-            Object.keys(specialMap).forEach(k => {
-                if (shopWOlocation.includes(k)) {
-                    returnProcessResult[r] = specialMap[k];
+            for (const key of Object.keys(specialMap)) {
+                if (shopWOlocation.includes(key)) {
+                    returnProcessResult[r] = specialMap[key];
+                    return;
                 }
-            });
+            }
         }
     });
     return returnProcessResult

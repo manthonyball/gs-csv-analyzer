@@ -25,13 +25,8 @@ function stripHoSpending() {
     const idxNotProcessedValue = emptyNumber.filter(
             x => calculatedArray.indexOf(x) < 0);
 
-    // the logic needs to recognize below
-    // vi's no frill
-    // LCBO/RAO
-    // RCSS Scarborugh
-
     const reprocessedItems = [];
-    const reprocessResult = tryReprocess(idxNotProcessedValue, "c");
+    const reprocessResult = tryReprocess(idxNotProcessedValue, "M");
     for (const[key, value]of Object.entries(reprocessResult)) {
         switch (value) {
         case 'F&B':
