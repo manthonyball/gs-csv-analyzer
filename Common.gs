@@ -8,35 +8,31 @@ function fillDataFromObject(fillData) {
             element.destinationCell));
 }
 
-//todo : O(mn)
-/****
- * the logic needs to recognize below
- *  vi's no frill
- *  LCBO/RAO
- *  RCSS Scarborugh
- */
-function tryReprocess(idxNotProcessedValue, col) {
+function tryReprocess(txnList, idxNotProcessedValue) {
     const returnProcessResult = {};
     const specialMap = getSheetDataInHashMap('E', '2', 'F', 'Constants');
-    const sheet = SpreadsheetApp.getActiveSpreadsheet();
-    idxNotProcessedValue.forEach((r) => {
-        let txnDespRange = sheet.getRange(col + r);
-        let shopPreprocess = txnDespRange.getValue().split(' ');
 
-        popy(shopPreprocess);
-        // special handle col
-        let shopWOlocation = shopPreprocess.join('');
-
-        if (r != '') {
-            for (const key of Object.keys(specialMap)) {
-                if (shopWOlocation.includes(key)) {
-                    returnProcessResult[r] = specialMap[key];
-                    return;
-                }
-            }
-        }
+    idxNotProcessedValue
+    .filter(isNonEmpty)
+    .forEach((r) => {
+        returnProcessResult[r] = tryReprocessSingleTransaction(txnList[r - 1][2], specialMap)
     });
-    return returnProcessResult
+    return returnProcessResult;
+}
+
+function tryReprocessSingleTransaction(txn, specialMap) {
+    let shopNamePreprocess = txn.split(' ');
+
+    popy(shopNamePreprocess);
+
+    // special handle col
+    let shopWOlocation = shopNamePreprocess.join('');
+    for (const key of Object.keys(specialMap)) {
+        if (shopWOlocation.includes(key)) {
+            return specialMap[key];
+        }
+    }
+    return "OTH";
 }
 
 function getMerchantMap() {
@@ -70,7 +66,8 @@ function getSheetDataInHashMap(startCol, startRow, endCol, sheetName) {
 
     let hashmap = new Map();
     rawResult.forEach(e => {
-        hashmap[e[0]] = e[1]
+        let key = e[0].toString().trim();
+            hashmap[key] = e[1];
     })
 
     return hashmap;
@@ -113,16 +110,21 @@ function fillFormula(idxList, refCellIdentifier, destinationCell) {
     cell.setFormula("=SUM(" + joinedList + ")");
 }
 
-function clearRange(startCol, startRow, endCol, sheetName) {
+function clearRange(startCol, startRow, endCol, sheetName, endRow = 0) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet();
 
     if (sheetName != null && sheetName != '') {
         sheet = sheet.getSheetByName(sheetName);
     }
 
-    let lastRowParam = getLastNonEmptyRow(endCol, sheetName);
+    let lastRowParam = endRow == 0 ? getLastNonEmptyRow(endCol, sheetName) : endRow;
     let r = sheet.getRange(startCol + startRow + ":" + endCol + lastRowParam);
     r.clearContent();
+}
+
+function getMax(intList) {
+    if (Array.isArray(intList))
+        return Math.max(...intList);
 }
 
 function getLastNonEmptyRow(col, sheetName) {

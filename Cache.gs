@@ -41,6 +41,7 @@ function renameKeys(obj, newKeys) {
 function initializeCache(cacheContentString) {
     let jsonMap = JSON.parse(cacheContentString);
     let cache = CacheService.getScriptCache();
-    for (const[key, value]of Object.entries(jsonMap))
-        cache.put(key, value.toString(), PropertiesService.getScriptProperties().getProperties().CacheExpireInMinutes); // C1
+    for (const [key, value] of Object.entries(jsonMap)) {
+        cache.put(key, value.toString(), PropertiesService.getScriptProperties().getProperties().CacheExpireInMinutes * 60); // C1
+    }
 }

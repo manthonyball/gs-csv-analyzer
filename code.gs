@@ -13,7 +13,6 @@ function getSheet() {
     var fillData = [];
 
     var idxGro = filterData(txnList, 'GRO', "fuzzy");
-
     var idxEnr = filterData(txnList, 'ENR', "fuzzy");
 
     var idxIns = filterData(txnList, 'INS');
@@ -38,8 +37,8 @@ function getSheet() {
             x => calculatedArray.indexOf(x) < 0);
 
     const reprocessedItems = [];
-    const reprocessResult = tryReprocess(idxNotProcessedValue, "C");
-    for (const[key, value]of Object.entries(reprocessResult)) {
+    const reprocessResult = tryReprocess(txnList, idxNotProcessedValue);
+    for (const [key, value] of Object.entries(reprocessResult)) {
         switch (value) {
         case 'GRO':
             idxGro.push(key);

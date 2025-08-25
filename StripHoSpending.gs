@@ -26,7 +26,7 @@ function stripHoSpending() {
             x => calculatedArray.indexOf(x) < 0);
 
     const reprocessedItems = [];
-    const reprocessResult = tryReprocess(idxNotProcessedValue, "M");
+    const reprocessResult = tryReprocess(txnList, idxNotProcessedValue);
     for (const[key, value]of Object.entries(reprocessResult)) {
         switch (value) {
         case 'F&B':

@@ -42,11 +42,13 @@ function getMassagedShopListInSoundex(id, idx, arr) {
  * [TODO] if move to other place, control the default of popy
  **********************************************************/
 function popy(shopPreprocess) {
-    let popyTimes = 2;
-    // normally, the right side is province/area, no need to analyze for my needs
-    while (popyTimes >= 1) {
-        popyTimes--;
-        shopPreprocess.pop();
+    if (shopPreprocess.length > 2) {
+        let popyTimes = 2;
+        // normally, the right side is province/area, no need to analyze for my needs
+        while (popyTimes >= 1) {
+            popyTimes--;
+            shopPreprocess.pop();
+        }
     }
     return shopPreprocess;
 }
@@ -69,4 +71,8 @@ function directFilter(data, merchantType) {
 const regexStartwSymbolFollowedByNumber = /^[\W0-9]{1,}/gm;
 function filterPureNumberItem(value) {
     return !regexStartwSymbolFollowedByNumber.test(value);
+}
+
+function isNonEmpty(i) {
+    return i != null || i != "" ? true : false;
 }
