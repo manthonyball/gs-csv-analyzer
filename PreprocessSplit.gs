@@ -20,7 +20,7 @@ function dataIngest() {
 
     var sharedType = getRaw('I', '2', 'I', 'Constants').flat();
     var rowNum = 0;
-    var otherTag = "OTH";
+    var otherTag = Common.OtherTag;
     
 	const specialMap = getSheetDataInHashMap('E', '2', 'F', 'Constants');
     for (const r of txnList) {

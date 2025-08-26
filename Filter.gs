@@ -13,7 +13,7 @@ function fuzzyMatchFilter(data, merchantType) {
 
     shopNameListSDx = data.map(getMassagedShopListInSoundex);
 
-    let refListSDx = getMerchantCache(merchantType).map(s => soundex(s));
+    let refListSDx = Cache.getMerchantCache(merchantType).map(s => soundex(s));
 
     // Aware of a case of A&W & A&A precisely {n}000; handled by reprocess logic
 
@@ -37,30 +37,14 @@ function getMassagedShopListInSoundex(id, idx, arr) {
     return getShopNameInSoundex(arr[idx][2]);
 }
 
-/**********************************************************
- * popy -> limitation to remove geographical data [OK]Scarborough [X]North York
- * [TODO] if move to other place, control the default of popy
- **********************************************************/
-function popy(shopPreprocess) {
-    if (shopPreprocess.length > 2) {
-        let popyTimes = 2;
-        // normally, the right side is province/area, no need to analyze for my needs
-        while (popyTimes >= 1) {
-            popyTimes--;
-            shopPreprocess.pop();
-        }
-    }
-    return shopPreprocess;
-}
-
 function getShopNameInSoundex(shopDescription) {
     let shopPreprocess = shopDescription.split(' ');
-    popy(shopPreprocess);
+    Common.popy(shopPreprocess);
     return soundex(shopPreprocess.join(' '));
 }
 
 function directFilter(data, merchantType) {
-    let typeCode = getMerchantCache(merchantType);
+    let typeCode = Cache.getMerchantCache(merchantType);
     let result = data
         .reduce((c, v, i) =>
             v[2].startsWith(typeCode) ? c.concat(i + 1) : c, []);
@@ -71,8 +55,4 @@ function directFilter(data, merchantType) {
 const regexStartwSymbolFollowedByNumber = /^[\W0-9]{1,}/gm;
 function filterPureNumberItem(value) {
     return !regexStartwSymbolFollowedByNumber.test(value);
-}
-
-function isNonEmpty(i) {
-    return i != null || i != "" ? true : false;
 }

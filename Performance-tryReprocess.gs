@@ -167,7 +167,7 @@ function tryReprocess_ath(txnList, idxNotProcessedValue) {
 
     const mappedTxn = idxNotProcessedValue.map(txn => {
         let shopNamePreprocess = txnList[txn - 1][2].split(' ');
-        popy(shopNamePreprocess);
+        Common.popy(shopNamePreprocess);
         return shopNamePreprocess.join('')
         .replace(/[^a-zA-Z0-9]/g, '')
          + '-' + txn.toString().padStart(3, '0');
@@ -196,7 +196,7 @@ function tryReprocess_ori(txnList, idxNotProcessedValue) {
     const specialMap = getSheetDataInHashMap('E', '2', 'F', 'Constants');
     idxNotProcessedValue.forEach((r) => {
         let shopNamePreprocess = txnList[r - 1][2].split(' ');
-        popy(shopNamePreprocess);
+        Common.popy(shopNamePreprocess);
         // special handle col
         let shopWOlocation = shopNamePreprocess.join('');
 
@@ -218,7 +218,7 @@ function tryReprocess_no_early_return(txnList, idxNotProcessedValue) {
     const specialMap = getSheetDataInHashMap('E', '2', 'F', 'Constants');
     idxNotProcessedValue.forEach((r) => {
         let shopNamePreprocess = txnList[r - 1][2].split(' ');
-        popy(shopNamePreprocess);
+        Common.popy(shopNamePreprocess);
         // special handle col
         let shopWOlocation = shopNamePreprocess.join('');
 
